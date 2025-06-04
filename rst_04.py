@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Created by: Xiaohan Tian
 # Created on: May 30, 2025
-# This program
+# This program add the button functionality
 
 import ugame
 import stage
