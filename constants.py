@@ -3,7 +3,7 @@
 # Created on: June 03, 2025
 # This program includes constants.
 
-# This pybadge is 160 X 128 pixels
+# This pybadge is 160 X 128 pixels.
 SCREEN_X = 160
 SCREEN_Y = 128
 SCREEN_GRID_X = 10
