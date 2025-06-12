@@ -276,6 +276,10 @@ def game_scene():
     background = stage.Grid(
         image_bank_background, constants.SCREEN_GRID_X, constants.SCREEN_GRID_Y
     )
+    for x_location in range(constants.SCREEN_GRID_X):
+        for y_location in range(constants.SCREEN_GRID_Y):
+            tile_picked = random.randint(1, 3)
+            background.tile(x_location, y_location, tile_picked)
     # Place the sprite under the location (75, 66) on the screen
     ship = stage.Sprite(
         image_bank_sprites, 5, 75, constants.SCREEN_Y - (2 * constants.SPRITE_SIZE)
@@ -301,6 +305,9 @@ def game_scene():
     game.layers = [score_text] + [lives_text] + lasers + [ship] + aliens + [background]
     game.render_block()
 
+    speed_fast = False
+    # Track DOWN button
+    down_button = constants.button_state["button_up"]
     while True:
         # Get button input
         keys = ugame.buttons.get_pressed()
@@ -322,17 +329,19 @@ def game_scene():
             print("Start")
         if keys & ugame.K_SELECT != 0:
             print("Select")
+        current_speed = constants.SPRITE_MOVEMENT_SPEED * 3 if speed_fast else constants.SPRITE_MOVEMENT_SPEED
+
         if keys & ugame.K_RIGHT != 0:
             if ship.x <= (constants.SCREEN_X - constants.SPRITE_SIZE):
-                ship.move((ship.x + constants.SPRITE_MOVEMENT_SPEED), ship.y)
+                ship.move(ship.x + current_speed, ship.y)
             else: 
-                ship.move((constants.SCREEN_X - constants.SPRITE_SIZE), ship.y)
+                ship.move(constants.SCREEN_X - constants.SPRITE_SIZE, ship.y)
+
         if keys & ugame.K_LEFT != 0:
             if ship.x >= 0:
-                ship.move((ship.x - constants.SPRITE_MOVEMENT_SPEED), ship.y)
+                ship.move(ship.x - current_speed, ship.y)
             else:
                 ship.move(0, ship.y)
-                # UP button for mute toggle
         if keys & ugame.K_UP != 0:
             if up_button == constants.button_state["button_up"]:
                 up_button = constants.button_state["button_just_pressed"]
@@ -347,9 +356,20 @@ def game_scene():
         if up_button == constants.button_state["button_just_pressed"]:
             mute = not mute
             sound.mute(mute)
-
+        
         if keys & ugame.K_DOWN != 0:
-            pass
+            if down_button == constants.button_state["button_up"]:
+                down_button = constants.button_state["button_just_pressed"]
+            elif down_button == constants.button_state["button_just_pressed"]:
+                down_button = constants.button_state["button_still_pressed"]
+        else:
+            if down_button == constants.button_state["button_still_pressed"]:
+                down_button = constants.button_state["button_released"]
+            else:
+                down_button = constants.button_state["button_up"]
+
+        if down_button == constants.button_state["button_just_pressed"]:
+            speed_fast = not speed_fast
 
         if a_button == constants.button_state["button_just_pressed"]:
             for laser_number in range(len(lasers)):

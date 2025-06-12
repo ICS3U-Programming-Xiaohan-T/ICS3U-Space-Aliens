@@ -147,50 +147,6 @@ def splash_scene():
         time.sleep(2.0)
         menu_scene()
 
-def menu_scene():
-    # This function is the main game scene
-    # Insert the background and ship sprites
-    image_bank_background = stage.Bank.from_bmp16("space_aliens_background.bmp")
-
-    # add text objects
-    text = []
-    text1 = stage.Text(
-        width=29, height=12, font=None, palette=constants.RED_PALETTE, buffer=None
-    )
-    text1.move(20, 10)
-    text1.text("MT Game Studios")
-    text.append(text1)
-
-    text2 = stage.Text(
-        width=29, height=12, font=None, palette=constants.RED_PALETTE, buffer=None
-    )
-    text2.move(40, 110)
-    text2.text("PRESS START")
-    text.append(text2)
-
-    # The size of the background is 10 by 8 tiles, each tile is 16x16 pixels
-    background = stage.Grid(
-        image_bank_background, constants.SCREEN_GRID_X, constants.SCREEN_GRID_Y
-    )
-
-    for x_location in range(constants.SCREEN_GRID_X):
-        for y_location in range(constants.SCREEN_GRID_Y):
-            tile_picked = random.randint(1, 3)
-            background.tile(x_location, y_location, tile_picked)
-
-    game = stage.Stage(ugame.display, constants.FPS)
-    # The layers are the background and the ship
-    game.layers = text + [background]
-    game.render_block()
-
-    while True:
-        # Get button input
-        keys = ugame.buttons.get_pressed()
-
-        if keys & ugame.K_START != 0:
-            # If the start button is pressed, go to the game scene
-            game_scene()
-
 def game_scene():
     # This function is the main game scene
 
@@ -216,21 +172,21 @@ def game_scene():
     lives_text.move(90, 1)
     lives_text.text("Lives: {0}".format(lives))
 
-def show_alien():
-    # this function takes an alien from off screen and moves it on screen
-    # Loops through all aliens.
-    for alien_number in range(len(aliens)):
-        # If the alien is off screen, move it on screen
-        if aliens[alien_number].x < 0:
-            aliens[alien_number].move(random.randint(0 + constants.SPRITE_SIZE,
-                                      constants.SCREEN_X - constants.SPRITE_SIZE),
-                                      constants.OFF_TOP_SCREEN)
-        break
+    def show_alien():
+        # this function takes an alien from off screen and moves it on screen
+        # Loops through all aliens.
+        for alien_number in range(len(aliens)):
+            # If the alien is off screen, move it on screen
+            if aliens[alien_number].x < 0:
+                aliens[alien_number].move(random.randint(0 + constants.SPRITE_SIZE,
+                                          constants.SCREEN_X - constants.SPRITE_SIZE),
+                                          constants.OFF_TOP_SCREEN)
+            break
 
     # Insert the background and ship sprites
     image_bank_background = stage.Bank.from_bmp16("space_aliens_background.bmp")
     image_bank_sprites = stage.Bank.from_bmp16("space_aliens.bmp")
-    image_bank_bonus_sprites = stage.Bank.from_bmp16()
+    image_bank_bonus_sprites = stage.Bank.from_bmp16("new_aliens.bmp")
 
     a_button = constants.button_state["button_up"]
     b_button = constants.button_state["button_up"]
@@ -314,7 +270,7 @@ def show_alien():
                     ship.move((constants.SCREEN_X - constants.SPRITE_SIZE), ship.y)
             if keys & ugame.K_LEFT != 0:
                 if ship.x >= 0:
-                    ship.move((ship.x - Sprite_speed), ship.y)
+                    ship.move((ship.x - sprite_speed), ship.y)
                 else:
                     ship.move(0, ship.y)
             if keys & ugame.K_UP != 0:
@@ -395,18 +351,25 @@ def show_alien():
 
         for alien_number in range(len(aliens)):
             if aliens[alien_number].x > 0:
-                if stage.collide(aliens[alien_number].x + 1, aliens[alien_number].y,
-                               aliens[alien_number].x + 15, aliens[alien_number].y + 15,
-                               ship.x, ship.y,
-                               ship.x + 15, ship.y +15):
-                    #alien hit the ship
+                if stage.collide(
+                    aliens[alien_number].x + 1, aliens[alien_number].y,
+                    aliens[alien_number].x + 15, aliens[alien_number].y + 15,
+                    ship.x, ship.y,
+                    ship.x + 15, ship.y + 15):
+                    
+                    # Alien hit the ship
                     sound.stop()
                     sound.play(crash_sound)
-                    lives -= 1
+                    lives = lives - 1
+                    
+                    # Move alien off screen so it doesn't repeatedly collide
+                    aliens[alien_number].move(-100, -100)
+
                     lives_text.clear()
                     lives_text.cursor(0, 0)
                     lives_text.move(90, 1)
                     lives_text.text("Lives: {0}".format(lives))
+
                     if lives <= 0:
                         time.sleep(3.0)
                         game_over_scene(score)
@@ -414,9 +377,58 @@ def show_alien():
                         time.sleep(1.0)
                         ship.move(75, constants.SCREEN_Y - (2 * constants.SPRITE_SIZE))
 
-        # Redraw the sprites and update the screen
+        # Setup layers once outside the loop:
+        game.layers = aliens + lasers + [ship] + [lives_text]
+
+        # Inside your loop:
         game.render_sprites(aliens + lasers + [ship])
+
+
+
+
+def menu_scene():
+    # This function is the main game scene
+    # Insert the background and ship sprites
+    image_bank_background = stage.Bank.from_bmp16("space_aliens_background.bmp")
+
+    # add text objects
+    text = []
+    text1 = stage.Text(
+        width=29, height=12, font=None, palette=constants.RED_PALETTE, buffer=None
+    )
+    text1.move(20, 10)
+    text1.text("MT Game Studios")
+    text.append(text1)
+
+    text2 = stage.Text(
+        width=29, height=12, font=None, palette=constants.RED_PALETTE, buffer=None
+    )
+    text2.move(40, 110)
+    text2.text("PRESS START")
+    text.append(text2)
+
+    # The size of the background is 10 by 8 tiles, each tile is 16x16 pixels
+    background = stage.Grid(
+        image_bank_background, constants.SCREEN_GRID_X, constants.SCREEN_GRID_Y
+    )
+
+    for x_location in range(constants.SCREEN_GRID_X):
+        for y_location in range(constants.SCREEN_GRID_Y):
+            tile_picked = random.randint(1, 3)
+            background.tile(x_location, y_location, tile_picked)
+
+    game = stage.Stage(ugame.display, constants.FPS)
+    # The layers are the background and the ship
+    game.layers = text + [background]
+    game.render_block()
+
+    while True:
+        keys = ugame.buttons.get_pressed()
+        if keys & ugame.K_START != 0:
+            game_scene()
+            
         game.tick()
+
 
 if __name__ == "__main__":
     #call splash screen here and move instruction into splash screen
