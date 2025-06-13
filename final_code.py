@@ -13,6 +13,7 @@ import constants
 
 
 def instructions_scene():
+    # Use the background and sprites from the image bank
     image_bank = stage.Bank.from_bmp16("mt_game_studio.bmp")
     background = stage.Grid(image_bank, constants.SCREEN_GRID_X, constants.SCREEN_GRID_Y)
 
@@ -31,40 +32,58 @@ def instructions_scene():
     text3.move(15, 60)
     text3.text("Press A to begin")
     text.append(text3)
-
+    # Control the display refresh rate
     game = stage.Stage(ugame.display, constants.FPS)
+    # Text above the background
     game.layers = text + [background]
+    # Show all the layers on the screen
     game.render_block()
-
+    # While loop to keep the scene running
     while True:
+        # Check which button is pressed
         keys = ugame.buttons.get_pressed()
+        # If the A button is pressed, go to the menu scene
         if keys & ugame.K_X != 0:
             menu_scene()
+        # Update the game and refresh the screen
         game.tick()
 
 
 def win_scene(final_score):
+    # Load the win sound, open it, and play it
+    # rb means read binary, so it can be played
     win_music = open("win.wav", "rb")
+    # Sound system from Ugame
     sound = ugame.audio
+    # Stop any sound that is currently playing
     sound.stop()
+    # Make sure sound is not muted
     sound.mute(False)
+    # Play the win sound
     sound.play(win_music)
-
+    # Load the background layout use for the win screen under the following file
     image_bank_2 = stage.Bank.from_bmp16("mt_game_studio.bmp")
+    # Set the background grid to the image bank, contain the image
     background = stage.Grid(image_bank_2, constants.SCREEN_GRID_X, constants.SCREEN_GRID_Y)
+    # Create a list to show the text on the screen
     text = []
+    # The first text box and 
     text1 = stage.Text(width=29, height=14, font=None, palette=constants.BLUE_PALETTE, buffer=None)
+    # Move the text to this position on the screen
     text1.move(40, 60)
+    # Showing you win message
     text1.text("YOU WIN!")
+    # Add the text to the list so it can be displayed
     text.append(text1)
-
+    # Make sure the scene is displayed and for 3 seconds
     game = stage.Stage(ugame.display, constants.FPS)
     game.layers = text + [background]
     game.render_block()
 
     time.sleep(3.0)
-
+    # Stop the sound
     sound.stop()
+    # Go to game over scene
     game_over_scene(final_score)
 
 def game_over_scene(final_score):
@@ -231,6 +250,7 @@ def game_scene():
     score = 5
     # For lives
     lives = 3
+    # Sound is on
     mute = False
     # Create a Text object to display the score on screen
     score_text = stage.Text (width=29, height=14)
@@ -333,12 +353,18 @@ def game_scene():
             print("Start")
         if keys & ugame.K_SELECT != 0:
             print("Select")
-        current_speed = constants.SPRITE_MOVEMENT_SPEED * 3 if speed_fast else constants.SPRITE_MOVEMENT_SPEED
 
+
+        # Checks if the right button is currently being pressed.
         if keys & ugame.K_RIGHT != 0:
+            # The new x position of the ship
+            # Current x position of the ship plus the current speed
             new_x = ship.x + current_speed
+            # If new position is off the screen to the right
             if new_x > (constants.SCREEN_X - constants.SPRITE_SIZE):
+                # Reset it to the left edge of the screen
                 new_x = 0  # wrap around to left edge
+            # Move the ship to the new position
             ship.move(new_x, ship.y)
 
         if keys & ugame.K_LEFT != 0:
@@ -346,34 +372,60 @@ def game_scene():
             if new_x < 0:
                 new_x = constants.SCREEN_X - constants.SPRITE_SIZE  # wrap around to right edge
             ship.move(new_x, ship.y)
+        # Checks if the UP button is currently being pressed.
         if keys & ugame.K_UP != 0:
+            # If not been pressed, change the button state to just pressed.
             if up_button == constants.button_state["button_up"]:
                 up_button = constants.button_state["button_just_pressed"]
+            # If button been pressed
             elif up_button == constants.button_state["button_just_pressed"]:
+                # Change the button state to still pressed.
                 up_button = constants.button_state["button_still_pressed"]
+        # If the button is not pressed
         else:
+            # Check if the button is still pressed
             if up_button == constants.button_state["button_still_pressed"]:
+                # change the button state to released
                 up_button = constants.button_state["button_released"]
+            # If botton is not down
             else:
+                # Change the button state to up
                 up_button = constants.button_state["button_up"]
-
+        # If the UP button is just pressed
         if up_button == constants.button_state["button_just_pressed"]:
+            # The opposite of current mute state
             mute = not mute
+            # Tells the program to mute or unmute the sound
             sound.mute(mute)
-        
+        # If down button is pressed
         if keys & ugame.K_DOWN != 0:
+            # If the button is not pressed, change the button state to just pressed.
             if down_button == constants.button_state["button_up"]:
                 down_button = constants.button_state["button_just_pressed"]
+            # If the button is already pressed
             elif down_button == constants.button_state["button_just_pressed"]:
+                # Change the button state to still pressed.
                 down_button = constants.button_state["button_still_pressed"]
+        # If the button is not currently pressed
         else:
+            # If the button is still pressed before, change the button state to released
             if down_button == constants.button_state["button_still_pressed"]:
+                # Change the button state to released
                 down_button = constants.button_state["button_released"]
+            # If the button is not pressed
             else:
+                # Not in any movement
                 down_button = constants.button_state["button_up"]
-
+        # If the down button is just pressed
         if down_button == constants.button_state["button_just_pressed"]:
+            # Opposite of current speed_fast state
             speed_fast = not speed_fast
+        # If the speed_fast is True, then the current speed is 3 times the normal speed
+        if speed_fast:
+            current_speed = constants.SPRITE_MOVEMENT_SPEED * 3
+        # If the speed_fast is False, then the current speed is the normal speed
+        else:
+            current_speed = constants.SPRITE_MOVEMENT_SPEED
 
         if a_button == constants.button_state["button_just_pressed"]:
             for laser_number in range(len(lasers)):
@@ -433,27 +485,41 @@ def game_scene():
                             score_text.cursor(0, 0)
                             score_text.move(1, 1)
                             score_text.text("Score: {0}".format(score))
-
+        # Loop which do the following, inside the aliens list:
         for alien_number in range(len(aliens)):
+            # If the alien is on the screen, for the collision to happen
             if aliens[alien_number].x > 0:
+                # Built-in function to detect collision between two rectangular sprites.
                 if stage.collide (aliens[alien_number].x + 1, aliens[alien_number].y,
                                   aliens[alien_number].x + 15, aliens[alien_number].y + 15,
                                   ship.x, ship.y,
                                   ship.x + 15, ship.y +15):
                                   #alien hit the ship
-                            
+                                 # If the alien hit the ship, stop the sound
                                  sound.stop()
+                                 # Play the crash sound instead
                                  sound.play(crash_sound)
+                                 # Decrease the value of lives by 1
                                  lives -= 1
+                                 # Remove the previous text in order to update the text
                                  lives_text.clear()
+                                 # the cursor is the top left corner of the text
                                  lives_text.cursor(0, 0)
+                                 # Move the text to x = 90, y = 1
                                  lives_text.move(90, 1)
+                                 # Print the number of lives left on the screen
                                  lives_text.text("Lives: {0}".format(lives))
+                                 # Check if lives are 0 or below, meaning game over.
                                  if lives <= 0:
+                                     # Hold for 3 second to read
                                      time.sleep(3.0)
+                                     # Go to the game over scene
                                      game_over_scene(score)
+                                # Still has lives
                                  else:
+                                     # Hold for 1 second to read
                                      time.sleep(1.0)
+                                     # The ship moves back to where it shoot the aliens
                                      ship.move(75, constants.SCREEN_Y - (2 * constants.SPRITE_SIZE))
 
 
